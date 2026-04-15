@@ -41,11 +41,6 @@
             <button id="go-btn">Go</button>
         </div>
     </div>
-
-    <p class="forget" id="forget-section" style="display:none;">
-        Redirecting to <code id="saved-display"></code>&hellip;
-        <a href="#" id="forget-link">forget &amp; change</a>
-    </p>
 </div>
 
 <script>
@@ -63,22 +58,13 @@
     document.getElementById("bare-url").textContent = hostname;
 
     var saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-        document.getElementById("form-section").style.display = "none";
-        var forgetSection = document.getElementById("forget-section");
-        forgetSection.style.display = "";
-        document.getElementById("saved-display").textContent = saved;
-
-        document.getElementById("forget-link").addEventListener("click", function(e) {
-            e.preventDefault();
-            localStorage.removeItem(STORAGE_KEY);
-            forgetSection.style.display = "none";
-            document.getElementById("form-section").style.display = "";
-            document.getElementById("compute-url").focus();
-        });
-
+    if (saved && forward) {
         window.location.replace(saved + forward);
         return;
+    }
+
+    if (saved) {
+        document.getElementById("compute-url").value = saved;
     }
 
     var input = document.getElementById("compute-url");
