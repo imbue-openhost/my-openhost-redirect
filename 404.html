@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Compute Space — OpenHost</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 1rem; background: #f5f5f5; color: #222; }
+  .card { max-width: 480px; margin: 4rem auto; background: #fff; border-radius: 8px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  h1 { font-size: 1.3rem; margin: 0 0 1rem; }
+  label { display: block; margin-bottom: 0.25rem; }
+  .row { display: flex; gap: 0.5rem; }
+  input[type="text"] { flex: 1; padding: 0.4rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+  button { padding: 0.4rem 1rem; font-size: 1rem; border: none; border-radius: 4px; background: #2563eb; color: #fff; cursor: pointer; }
+  button:hover { background: #1d4ed8; }
+  a { color: #2563eb; }
+  .forget { font-size: 0.85rem; margin-top: 0.75rem; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1 id="heading">my.openhost</h1>
+    <p>This page forwards requests to your own compute space.</p>
+
+    <div id="form-section">
+        <label for="compute-url">Enter your compute space URL:</label>
+        <div class="row">
+            <input type="text" id="compute-url" placeholder="https://my-space.example.com">
+            <button id="go-btn">Go</button>
+        </div>
+    </div>
+
+    <p class="forget" id="forget-section" style="display:none;">
+        Redirecting to <code id="saved-display"></code>&hellip;
+        <a href="#" id="forget-link">forget &amp; change</a>
+    </p>
+</div>
+
+<script>
+(function() {
+    var STORAGE_KEY = "openhost_compute_url";
+
+    // Build the path + query + hash to forward
+    var loc = window.location;
+    var forward = loc.pathname + loc.search + loc.hash;
+    // Normalise bare "/" to empty so saved + forward doesn't double-slash
+    if (forward === "/") forward = "";
+
+    document.getElementById("heading").textContent = "my." + loc.hostname.replace(/^my\./, "");
+
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        document.getElementById("form-section").style.display = "none";
+        var forgetSection = document.getElementById("forget-section");
+        forgetSection.style.display = "";
+        document.getElementById("saved-display").textContent = saved;
+
+        document.getElementById("forget-link").addEventListener("click", function(e) {
+            e.preventDefault();
+            localStorage.removeItem(STORAGE_KEY);
+            forgetSection.style.display = "none";
+            document.getElementById("form-section").style.display = "";
+            document.getElementById("compute-url").focus();
+        });
+
+        window.location.replace(saved + forward);
+        return;
+    }
+
+    var input = document.getElementById("compute-url");
+    var btn = document.getElementById("go-btn");
+
+    function doRedirect() {
+        var url = input.value.trim().replace(/\/+$/, "");
+        if (!url) return;
+        if (!/^https?:\/\//.test(url)) url = "https://" + url;
+        localStorage.setItem(STORAGE_KEY, url);
+        window.location.replace(url + forward);
+    }
+
+    btn.addEventListener("click", doRedirect);
+    input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") doRedirect();
+    });
+})();
+</script>
+</body>
+</html>
