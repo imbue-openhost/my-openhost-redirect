@@ -41,8 +41,8 @@
         <div class="row">
             <input type="text" id="compute-url" placeholder="https://my-space.example.com">
         </div>
-        <p id="preview" style="margin: 0.75rem 0 0; word-break: break-all; display: none;">
-            Redirect to: <code id="preview-url"></code>
+        <p id="preview" style="margin: 0.75rem 0 0; word-break: break-all;">
+            Will redirect to: <a id="preview-url" href="#"></a>
         </p>
         <div style="margin-top: 0.75rem;">
             <button id="go-btn">Save</button>
@@ -91,13 +91,14 @@
     }
 
     function updatePreview() {
-        if (!forward) { preview.style.display = "none"; return; }
         var url = normalizeUrl(input.value);
-        if (url) {
-            previewUrl.textContent = url + forward;
-            preview.style.display = "";
+        var full = url ? url + forward : "";
+        if (full) {
+            previewUrl.textContent = full;
+            previewUrl.href = full;
         } else {
-            preview.style.display = "none";
+            previewUrl.textContent = "";
+            previewUrl.removeAttribute("href");
         }
     }
 
