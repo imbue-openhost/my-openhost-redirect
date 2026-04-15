@@ -21,7 +21,18 @@
 <body>
 <div class="card">
     <h1 id="heading">my.openhost</h1>
-    <p>This page forwards requests to your own compute space.</p>
+    <p>This is a static page that redirects to your compute space. It's used to
+    enable things like OAuth flows that redirect back into your compute space, or
+    links that can be published with a common URL that will redirect into each
+    user's individual compute space.</p>
+
+    <p>Your compute space URL will be saved in your browser's local storage, and
+    this page makes no network requests other than redirecting you into your
+    compute space.</p>
+
+    <p>Visiting <code id="bare-url">my.selfhost.imbue.com</code> without any
+    additional URL arguments will land you back on this page if you need to
+    update your compute space URL.</p>
 
     <div id="form-section">
         <label for="compute-url">Enter your compute space URL:</label>
@@ -47,7 +58,9 @@
     // Normalise bare "/" to empty so saved + forward doesn't double-slash
     if (forward === "/") forward = "";
 
-    document.getElementById("heading").textContent = "my." + loc.hostname.replace(/^my\./, "");
+    var hostname = loc.hostname;
+    document.getElementById("heading").textContent = "my." + hostname.replace(/^my\./, "");
+    document.getElementById("bare-url").textContent = hostname;
 
     var saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
