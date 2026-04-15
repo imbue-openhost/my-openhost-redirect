@@ -40,7 +40,12 @@
         <label for="compute-url">Enter your compute space URL:</label>
         <div class="row">
             <input type="text" id="compute-url" placeholder="https://my-space.example.com">
-            <button id="go-btn">Go</button>
+        </div>
+        <p id="preview" style="margin: 0.75rem 0 0; word-break: break-all; display: none;">
+            Redirect to: <code id="preview-url"></code>
+        </p>
+        <div style="margin-top: 0.75rem;">
+            <button id="go-btn">Save</button>
         </div>
     </div>
 </div>
@@ -65,19 +70,47 @@
         return;
     }
 
-    if (saved) {
-        document.getElementById("compute-url").value = saved;
-    }
-
     var input = document.getElementById("compute-url");
     var btn = document.getElementById("go-btn");
+    var preview = document.getElementById("preview");
+    var previewUrl = document.getElementById("preview-url");
+
+    if (saved) {
+        input.value = saved;
+    }
+
+    if (forward) {
+        btn.textContent = "Go";
+    }
+
+    function normalizeUrl(raw) {
+        var url = raw.trim().replace(/\/+$/, "");
+        if (!url) return "";
+        if (!/^https?:\/\//.test(url)) url = "https://" + url;
+        return url;
+    }
+
+    function updatePreview() {
+        if (!forward) { preview.style.display = "none"; return; }
+        var url = normalizeUrl(input.value);
+        if (url) {
+            previewUrl.textContent = url + forward;
+            preview.style.display = "";
+        } else {
+            preview.style.display = "none";
+        }
+    }
+
+    input.addEventListener("input", updatePreview);
+    updatePreview();
 
     function doRedirect() {
-        var url = input.value.trim().replace(/\/+$/, "");
+        var url = normalizeUrl(input.value);
         if (!url) return;
-        if (!/^https?:\/\//.test(url)) url = "https://" + url;
         localStorage.setItem(STORAGE_KEY, url);
-        window.location.replace(url + forward);
+        if (forward) {
+            window.location.replace(url + forward);
+        }
     }
 
     btn.addEventListener("click", doRedirect);
