@@ -24,7 +24,10 @@
     <p>This is a static page that redirects to your compute space. It's used to
     enable things like OAuth flows that redirect back into your compute space, or
     links that can be published with a common URL that will redirect into each
-    user's individual compute space.</p>
+    user's individual compute space. Only links under <code>/redirect/…</code>
+    are forwarded, and they land under the same <code>/redirect/…</code> path in
+    your space — a reserved namespace of side-effect-free landing pages — so
+    published links can never point at arbitrary pages in your space.</p>
 
     <p>Your compute space URL will be saved in your browser's local storage, and
     this page makes no network requests other than redirecting you into your
@@ -37,6 +40,8 @@
     <p>Inspired by <a href="https://my.home-assistant.io/">my.home-assistant.io</a>.</p>
 
     <div id="form-section">
+        <p id="unknown-notice" hidden style="color: #b91c1c;">Unknown link —
+        only <code>/redirect/…</code> links are supported here.</p>
         <label for="compute-url">Enter your compute space URL:</label>
         <div class="row">
             <input type="text" id="compute-url" placeholder="https://my-space.example.com">
@@ -54,15 +59,29 @@
 (function() {
     var STORAGE_KEY = "openhost_compute_url";
 
-    // Build the path + query + hash to forward
+    // Only /redirect/... paths are forwardable, and the full path (prefix
+    // included) is forwarded verbatim, so links can only land inside the
+    // compute space's reserved /redirect/... namespace — never on arbitrary
+    // pages.
     var loc = window.location;
-    var forward = loc.pathname + loc.search + loc.hash;
-    // Normalise bare "/" to empty so saved + forward doesn't double-slash
-    if (forward === "/") forward = "";
+    var forward = "";
+    var unknown = false;
+    var path = loc.pathname;
+    if (path === "/" || path === "" || path === "/redirect" || path === "/redirect/") {
+        // No forward path: just show the settings form.
+    } else if (path.indexOf("/redirect/") === 0) {
+        forward = path + loc.search + loc.hash;
+    } else {
+        unknown = true;
+    }
 
     var hostname = loc.hostname;
     document.getElementById("heading").textContent = "my." + hostname.replace(/^my\./, "");
     document.getElementById("bare-url").textContent = hostname;
+
+    if (unknown) {
+        document.getElementById("unknown-notice").hidden = false;
+    }
 
     var saved = localStorage.getItem(STORAGE_KEY);
     if (saved && forward) {
